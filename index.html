@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Digambar Waghmare — AI & Software Developer</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+/* ── THEME TOKENS ─────────────────────────────── */
+[data-theme="dark"] {
+  --bg:        #0A0A0F;
+  --surface:   #111118;
+  --card:      #16161F;
+  --border:    #22222E;
+  --text:      #E8E8F0;
+  --muted:     #7A7A9A;
+  --nav-bg:    rgba(10,10,15,0.88);
+  --toc-bg:    rgba(16,16,25,0.96);
+  --input-bg:  #16161F;
+  --shadow:    0 4px 32px rgba(0,0,0,0.5);
+}
+[data-theme="light"] {
+  --bg:        #F5F5FA;
+  --surface:   #EBEBF5;
+  --card:      #FFFFFF;
+  --border:    #D8D8E8;
+  --text:      #12121A;
+  --muted:     #6B6B85;
+  --nav-bg:    rgba(245,245,250,0.92);
+  --toc-bg:    rgba(255,255,255,0.97);
+  --input-bg:  #FFFFFF;
+  --shadow:    0 4px 32px rgba(0,0,0,0.1);
+}
+/* accents stay constant */
+:root {
+  --accent:   #6C63FF;
+  --accent2:  #00C49A;
+  --accent3:  #FF6B6B;
+  --display:  'Syne', sans-serif;
+  --body:     'Space Grotesk', sans-serif;
+  --mono:     'JetBrains Mono', monospace;
+}
+
+/* ── RESET ────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg); color: var(--text);
+  font-family: var(--body); line-height: 1.6;
+  overflow-x: hidden;
+  transition: background 0.3s, color 0.3s;
+}
+
+/* ── NAV ──────────────────────────────────────── */
+nav {
+  position: fixed; top: 0; width: 100%; z-index: 200;
+  background: var(--nav-bg); backdrop-filter: blur(18px);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 5%; height: 62px;
+  transition: background 0.3s, border-color 0.3s;
+}
+.nav-brand { font-family: var(--display); font-weight: 800; font-size: 1.1rem; letter-spacing: -0.02em; color: var(--text); text-decoration: none; }
+.nav-brand span { color: var(--accent); }
+.nav-links { display: flex; gap: 1.6rem; list-style: none; }
+.nav-links a { font-size: 0.8rem; color: var(--muted); text-decoration: none; font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase; transition: color 0.2s; }
+.nav-links a:hover { color: var(--accent); }
+.nav-right { display: flex; align-items: center; gap: 0.8rem; }
+
+/* THEME TOGGLE */
+.theme-toggle {
+  width: 48px; height: 26px; border-radius: 999px;
+  background: var(--border); border: none; cursor: pointer;
+  position: relative; transition: background 0.3s; flex-shrink: 0;
+}
+.theme-toggle::after {
+  content: ''; position: absolute; top: 3px; left: 3px;
+  width: 20px; height: 20px; border-radius: 50%;
+  background: var(--accent);
+  transition: transform 0.3s, background 0.3s;
+}
+[data-theme="light"] .theme-toggle::after { transform: translateX(22px); background: var(--accent); }
+.toggle-icon { font-size: 0.75rem; position: absolute; top: 50%; transform: translateY(-50%); pointer-events: none; }
+.toggle-icon.moon { left: 5px; }
+.toggle-icon.sun  { right: 4px; }
+
+.nav-cta { background: var(--accent); color: #fff; border: none; padding: 0.45rem 1.1rem; border-radius: 6px; font-size: 0.82rem; font-weight: 600; cursor: pointer; text-decoration: none; transition: opacity 0.2s; white-space: nowrap; }
+.nav-cta:hover { opacity: 0.85; }
+
+/* TOC SIDEBAR */
+.toc-btn {
+  width: 34px; height: 34px; border-radius: 8px;
+  background: var(--card); border: 1px solid var(--border);
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  font-size: 1rem; transition: border-color 0.2s;
+}
+.toc-btn:hover { border-color: var(--accent); }
+.toc-overlay {
+  position: fixed; inset: 0; z-index: 300;
+  background: rgba(0,0,0,0.45); backdrop-filter: blur(4px);
+  opacity: 0; pointer-events: none; transition: opacity 0.3s;
+}
+.toc-overlay.open { opacity: 1; pointer-events: all; }
+.toc-panel {
+  position: fixed; top: 0; right: 0; bottom: 0; width: 280px; z-index: 400;
+  background: var(--toc-bg); border-left: 1px solid var(--border);
+  padding: 1.5rem; transform: translateX(100%); transition: transform 0.35s cubic-bezier(.4,0,.2,1);
+  overflow-y: auto;
+}
+.toc-panel.open { transform: translateX(0); }
+.toc-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+.toc-title { font-family: var(--display); font-weight: 800; font-size: 1rem; }
+.toc-close { background: none; border: none; cursor: pointer; font-size: 1.3rem; color: var(--muted); }
+.toc-list { list-style: none; display: flex; flex-direction: column; gap: 0.25rem; }
+.toc-list li a {
+  display: flex; align-items: center; gap: 0.7rem; padding: 0.55rem 0.7rem;
+  border-radius: 8px; text-decoration: none; color: var(--muted);
+  font-size: 0.88rem; font-weight: 500; transition: all 0.2s;
+}
+.toc-list li a:hover, .toc-list li a.active { background: rgba(108,99,255,0.1); color: var(--accent); }
+.toc-list li a .toc-num { font-family: var(--mono); font-size: 0.68rem; color: var(--accent); opacity: 0.7; min-width: 20px; }
+.toc-divider { border: none; border-top: 1px solid var(--border); margin: 0.75rem 0; }
+.toc-contact-quick { margin-top: 1rem; }
+.toc-contact-quick p { font-family: var(--mono); font-size: 0.68rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.6rem; }
+.toc-contact-quick a { display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; color: var(--muted); text-decoration: none; padding: 0.35rem 0; transition: color 0.2s; }
+.toc-contact-quick a:hover { color: var(--accent2); }
+
+/* ── SECTIONS ─────────────────────────────────── */
+section { padding: 80px 5%; }
+.section-inner { max-width: 1200px; margin: 0 auto; }
+.section-label { font-family: var(--mono); font-size: 0.72rem; color: var(--accent); letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 0.5rem; }
+.section-heading { font-family: var(--display); font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 800; letter-spacing: -0.02em; margin-bottom: 1rem; }
+.section-sub { color: var(--muted); font-size: 1rem; max-width: 560px; margin-bottom: 3rem; }
+.divider { border: none; border-top: 1px solid var(--border); margin: 0; }
+
+/* ── HERO ─────────────────────────────────────── */
+.hero {
+  min-height: 100vh; display: flex; align-items: center;
+  padding: 100px 5% 60px; position: relative; overflow: hidden;
+}
+.hero::before {
+  content: ''; position: absolute; top: -200px; right: -200px;
+  width: 700px; height: 700px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(108,99,255,0.1) 0%, transparent 65%);
+  pointer-events: none;
+}
+.hero::after {
+  content: ''; position: absolute; bottom: -100px; left: -100px;
+  width: 500px; height: 500px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(0,196,154,0.06) 0%, transparent 65%);
+  pointer-events: none;
+}
+.hero-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center; width: 100%; max-width: 1200px; margin: 0 auto; }
+.hero-eyebrow { font-family: var(--mono); font-size: 0.78rem; color: var(--accent2); letter-spacing: 0.12em; margin-bottom: 1.2rem; display: flex; align-items: center; gap: 0.6rem; }
+.hero-eyebrow::before { content: ''; display: block; width: 24px; height: 1px; background: var(--accent2); }
+.hero-name { font-family: var(--display); font-size: clamp(2.8rem, 6vw, 5rem); font-weight: 800; line-height: 1.0; letter-spacing: -0.03em; margin-bottom: 1rem; }
+.hero-name .line2 { -webkit-text-stroke: 1.5px var(--accent); color: transparent; }
+[data-theme="light"] .hero-name .line2 { -webkit-text-stroke: 2px var(--accent); }
+.hero-tagline { font-size: 1.05rem; color: var(--muted); max-width: 420px; margin-bottom: 2rem; }
+.hero-tagline strong { color: var(--text); font-weight: 600; }
+.hero-badges { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 2.4rem; }
+.badge { font-family: var(--mono); font-size: 0.72rem; padding: 0.3rem 0.75rem; border-radius: 4px; border: 1px solid; }
+.badge-purple { border-color: rgba(108,99,255,0.4); color: var(--accent); background: rgba(108,99,255,0.08); }
+.badge-green  { border-color: rgba(0,196,154,0.4); color: var(--accent2); background: rgba(0,196,154,0.08); }
+.badge-red    { border-color: rgba(255,107,107,0.4); color: var(--accent3); background: rgba(255,107,107,0.08); }
+.hero-actions { display: flex; gap: 1rem; flex-wrap: wrap; }
+.btn { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.7rem 1.5rem; border-radius: 8px; font-weight: 600; font-size: 0.9rem; text-decoration: none; transition: all 0.2s; cursor: pointer; border: none; font-family: var(--body); }
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover { background: #574fd6; transform: translateY(-2px); }
+.btn-outline { border: 1px solid var(--border); color: var(--text); background: transparent; }
+.btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+
+/* PROFILE CARD */
+.hero-card-side { display: flex; justify-content: center; }
+.profile-card {
+  background: var(--card); border: 1px solid var(--border); border-radius: 20px;
+  padding: 2rem; width: 320px; position: relative; overflow: hidden;
+  box-shadow: var(--shadow); transition: background 0.3s, border-color 0.3s;
+}
+.profile-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+}
+.profile-avatar {
+  width: 72px; height: 72px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--display); font-size: 1.8rem; font-weight: 800; color: #fff;
+  margin-bottom: 1rem;
+}
+.profile-name { font-family: var(--display); font-size: 1.2rem; font-weight: 700; margin-bottom: 0.2rem; }
+.profile-role { font-size: 0.82rem; color: var(--accent); font-family: var(--mono); margin-bottom: 1.2rem; }
+.profile-stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; margin-bottom: 1.4rem; }
+.stat-box { background: var(--surface); border-radius: 10px; padding: 0.7rem; text-align: center; transition: background 0.3s; }
+.stat-box .num { font-family: var(--display); font-size: 1.4rem; font-weight: 800; color: var(--accent); }
+.stat-box .lbl { font-size: 0.68rem; color: var(--muted); font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.05em; }
+.contact-links { display: flex; flex-direction: column; gap: 0.5rem; }
+.contact-link { display: flex; align-items: center; gap: 0.6rem; font-size: 0.8rem; color: var(--muted); text-decoration: none; transition: color 0.2s; }
+.contact-link:hover { color: var(--accent2); }
+.contact-link .icon { width: 28px; height: 28px; border-radius: 6px; background: var(--surface); display: flex; align-items: center; justify-content: center; font-size: 0.85rem; flex-shrink: 0; transition: background 0.3s; }
+
+/* ── WHY HIRE ME ──────────────────────────────── */
+.why-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.2rem; }
+.why-card {
+  background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 1.6rem;
+  transition: border-color 0.2s, transform 0.2s, background 0.3s;
+}
+.why-card:hover { border-color: var(--accent); transform: translateY(-4px); }
+.why-icon { font-size: 1.8rem; margin-bottom: 0.8rem; }
+.why-title { font-family: var(--display); font-size: 1rem; font-weight: 700; margin-bottom: 0.5rem; }
+.why-desc { font-size: 0.88rem; color: var(--muted); line-height: 1.7; }
+
+/* ── SKILLS ───────────────────────────────────── */
+.skills-section { background: var(--surface); transition: background 0.3s; }
+.skills-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 2rem; }
+.skill-category h3 { font-family: var(--display); font-size: 0.95rem; font-weight: 700; margin-bottom: 1rem; color: var(--accent2); }
+.skill-bar { margin-bottom: 0.9rem; }
+.skill-bar-top { display: flex; justify-content: space-between; margin-bottom: 0.35rem; font-size: 0.82rem; }
+.skill-bar-track { height: 5px; background: var(--border); border-radius: 99px; overflow: hidden; }
+.skill-bar-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--accent), var(--accent2)); animation: fillbar 1.2s ease forwards; transform-origin: left; }
+@keyframes fillbar { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.tech-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem; }
+.tech-tag { font-family: var(--mono); font-size: 0.72rem; padding: 0.28rem 0.65rem; border-radius: 4px; background: var(--card); border: 1px solid var(--border); color: var(--muted); transition: background 0.3s, border-color 0.3s; }
+
+/* ── PROJECTS ─────────────────────────────────── */
+.projects-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+.project-card {
+  background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+  padding: 1.6rem; display: flex; flex-direction: column;
+  transition: all 0.25s; position: relative; overflow: hidden;
+}
+.project-card::after {
+  content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  transform: scaleX(0); transform-origin: left; transition: transform 0.3s;
+}
+.project-card:hover::after { transform: scaleX(1); }
+.project-card:hover { border-color: rgba(108,99,255,0.4); transform: translateY(-4px); }
+.project-num { font-family: var(--mono); font-size: 0.68rem; color: var(--accent); letter-spacing: 0.1em; margin-bottom: 0.6rem; }
+.project-title { font-family: var(--display); font-size: 1.05rem; font-weight: 700; margin-bottom: 0.6rem; }
+.project-desc { font-size: 0.85rem; color: var(--muted); flex: 1; margin-bottom: 1rem; line-height: 1.7; }
+.project-stack { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.stack-chip { font-family: var(--mono); font-size: 0.65rem; padding: 0.2rem 0.5rem; border-radius: 3px; background: rgba(108,99,255,0.12); color: var(--accent); }
+
+/* ── TIMELINE ─────────────────────────────────── */
+.timeline { display: flex; flex-direction: column; }
+.timeline-item { display: grid; grid-template-columns: 140px 1px 1fr; gap: 0 2rem; padding-bottom: 3rem; }
+.timeline-item:last-child { padding-bottom: 0; }
+.tl-date { font-family: var(--mono); font-size: 0.75rem; color: var(--muted); text-align: right; padding-top: 0.2rem; }
+.tl-line-wrap { display: flex; flex-direction: column; align-items: center; }
+.tl-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); border: 2px solid var(--bg); flex-shrink: 0; margin-top: 4px; transition: border-color 0.3s; }
+.tl-line { flex: 1; width: 1px; background: var(--border); margin-top: 4px; }
+.timeline-item:last-child .tl-line { display: none; }
+.tl-content { padding-left: 0.5rem; }
+.tl-company { font-family: var(--display); font-size: 1.05rem; font-weight: 700; margin-bottom: 0.2rem; }
+.tl-role { font-size: 0.82rem; color: var(--accent); font-family: var(--mono); margin-bottom: 0.6rem; }
+.tl-desc { font-size: 0.88rem; color: var(--muted); line-height: 1.7; }
+
+/* ── EDUCATION ────────────────────────────────── */
+.edu-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.2rem; }
+.edu-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 1.5rem; transition: border-color 0.2s, background 0.3s; }
+.edu-card:hover { border-color: var(--accent2); }
+.edu-icon { font-size: 1.5rem; margin-bottom: 0.8rem; }
+.edu-degree { font-family: var(--display); font-size: 0.95rem; font-weight: 700; margin-bottom: 0.3rem; }
+.edu-inst { font-size: 0.82rem; color: var(--muted); margin-bottom: 0.6rem; }
+.edu-meta { display: flex; justify-content: space-between; }
+.edu-year { font-family: var(--mono); font-size: 0.72rem; color: var(--muted); }
+.edu-gpa  { font-family: var(--mono); font-size: 0.72rem; color: var(--accent2); }
+
+/* ── LEADERSHIP ───────────────────────────────── */
+.lead-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.2rem; }
+.lead-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 1.5rem; display: flex; align-items: flex-start; gap: 1rem; transition: background 0.3s; }
+.lead-icon { font-size: 1.8rem; flex-shrink: 0; }
+.lead-title { font-family: var(--display); font-size: 0.95rem; font-weight: 700; margin-bottom: 0.3rem; }
+.lead-sub { font-size: 0.83rem; color: var(--muted); }
+
+/* ── CAREER GOALS ─────────────────────────────── */
+.goals-section { background: var(--surface); transition: background 0.3s; }
+.goals-card { background: var(--card); border: 1px solid rgba(108,99,255,0.3); border-radius: 20px; padding: 2.5rem; position: relative; overflow: hidden; transition: background 0.3s; }
+.goals-card::before { content: ''; position: absolute; top: -60px; right: -60px; width: 220px; height: 220px; border-radius: 50%; background: radial-gradient(circle, rgba(108,99,255,0.12) 0%, transparent 70%); pointer-events: none; }
+.goals-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-top: 1.5rem; }
+.goal-item { display: flex; align-items: flex-start; gap: 0.8rem; }
+.goal-bullet { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); margin-top: 7px; flex-shrink: 0; }
+.goal-text { font-size: 0.88rem; color: var(--muted); line-height: 1.6; }
+.goal-text strong { color: var(--text); }
+
+/* ── TESTIMONIAL ──────────────────────────────── */
+.testimonial-card { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 2rem; position: relative; transition: background 0.3s; }
+.testimonial-card::before { content: '"'; font-family: var(--display); font-size: 5rem; color: var(--accent); opacity: 0.12; position: absolute; top: 0; left: 1.5rem; line-height: 1; }
+.testimonial-text { font-size: 1rem; color: var(--muted); font-style: italic; line-height: 1.8; margin-bottom: 1.2rem; padding-top: 1.5rem; }
+.testimonial-author { font-family: var(--display); font-size: 0.88rem; font-weight: 700; }
+.testimonial-role { font-size: 0.78rem; color: var(--muted); font-family: var(--mono); }
+
+/* ── CONTACT SECTION ──────────────────────────── */
+.contact-section { background: var(--bg); transition: background 0.3s; }
+.contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: start; }
+.contact-big { font-family: var(--display); font-size: clamp(2rem, 5vw, 3.5rem); font-weight: 800; letter-spacing: -0.03em; line-height: 1.1; margin-bottom: 1rem; }
+.contact-big span { color: var(--accent); }
+.contact-sub { color: var(--muted); margin-bottom: 2rem; font-size: 0.95rem; }
+.contact-methods { display: flex; flex-direction: column; gap: 1rem; margin-bottom: 2rem; }
+.contact-method { display: flex; align-items: center; gap: 1rem; text-decoration: none; color: var(--text); transition: color 0.2s; }
+.contact-method:hover { color: var(--accent); }
+.contact-method .cm-icon { width: 44px; height: 44px; border-radius: 10px; background: var(--card); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 1.1rem; transition: border-color 0.2s, background 0.3s; }
+.contact-method:hover .cm-icon { border-color: var(--accent); }
+.cm-label { font-size: 0.72rem; color: var(--muted); font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.08em; }
+.cm-value { font-size: 0.9rem; font-weight: 500; }
+
+/* ── GMAIL FORM ───────────────────────────────── */
+.gmail-form-card {
+  background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 2rem;
+  box-shadow: var(--shadow); transition: background 0.3s, border-color 0.3s;
+}
+.gmail-form-card h3 { font-family: var(--display); font-size: 1.2rem; font-weight: 700; margin-bottom: 0.3rem; }
+.gmail-form-card p { font-size: 0.82rem; color: var(--muted); margin-bottom: 1.5rem; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.form-group { display: flex; flex-direction: column; gap: 0.35rem; margin-bottom: 1rem; }
+.form-group label { font-size: 0.78rem; font-weight: 600; color: var(--muted); font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.08em; }
+.form-group input,
+.form-group textarea,
+.form-group select {
+  background: var(--input-bg); border: 1px solid var(--border); border-radius: 8px;
+  padding: 0.65rem 0.9rem; color: var(--text); font-family: var(--body); font-size: 0.9rem;
+  outline: none; transition: border-color 0.2s, background 0.3s;
+  width: 100%;
+}
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus { border-color: var(--accent); }
+.form-group textarea { resize: vertical; min-height: 110px; }
+.form-group select option { background: var(--card); }
+.form-send-btn {
+  width: 100%; padding: 0.8rem; border-radius: 10px;
+  background: var(--accent); color: #fff; border: none;
+  font-family: var(--display); font-size: 0.95rem; font-weight: 700;
+  cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+  transition: background 0.2s, transform 0.15s;
+  margin-top: 0.5rem;
+}
+.form-send-btn:hover { background: #574fd6; transform: translateY(-1px); }
+.form-note { font-size: 0.72rem; color: var(--muted); text-align: center; margin-top: 0.8rem; font-family: var(--mono); }
+
+/* ── FOOTER ───────────────────────────────────── */
+footer { background: var(--surface); border-top: 1px solid var(--border); padding: 2rem 5%; text-align: center; transition: background 0.3s; }
+.footer-text { font-size: 0.8rem; color: var(--muted); }
+
+/* ── RESPONSIVE ───────────────────────────────── */
+@media (max-width: 960px) {
+  .hero-grid, .contact-grid { grid-template-columns: 1fr; }
+  .why-grid, .projects-grid, .edu-grid, .goals-grid { grid-template-columns: 1fr 1fr; }
+  .skills-grid, .lead-grid { grid-template-columns: 1fr; }
+  .nav-links { display: none; }
+  .hero-card-side { margin-top: 2rem; }
+  .profile-card { width: 100%; max-width: 380px; }
+  .timeline-item { grid-template-columns: 90px 1px 1fr; }
+}
+@media (max-width: 600px) {
+  .why-grid, .projects-grid, .edu-grid, .goals-grid { grid-template-columns: 1fr; }
+  .timeline-item { grid-template-columns: 64px 1px 1fr; gap: 0 1rem; }
+  .tl-date { font-size: 0.65rem; }
+  .form-row { grid-template-columns: 1fr; }
+  div[style*="grid-template-columns: 1fr 1fr"] { display: block !important; }
+  div[style*="grid-template-columns: 1fr 1fr"] > * { margin-bottom: 1.5rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .skill-bar-fill { animation: none; }
+  * { transition: none !important; transform: none !important; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-brand" href="#about">D<span>.</span>Waghmare</a>
+  <ul class="nav-links">
+    <li><a href="#about">About</a></li>
+    <li><a href="#why">Why Me</a></li>
+    <li><a href="#skills">Skills</a></li>
+    <li><a href="#projects">Projects</a></li>
+    <li><a href="#experience">Experience</a></li>
+    <li><a href="#education">Education</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+  <div class="nav-right">
+    <!-- Theme Toggle -->
+    <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme" title="Toggle dark/light mode">
+      <span class="toggle-icon moon">🌙</span>
+      <span class="toggle-icon sun">☀️</span>
+    </button>
+    <!-- TOC Button -->
+    <button class="toc-btn" id="tocBtn" aria-label="Table of contents" title="Table of contents">☰</button>
+    <a class="nav-cta" href="#contact">Hire Me</a>
+  </div>
+</nav>
+
+<!-- TOC OVERLAY + PANEL -->
+<div class="toc-overlay" id="tocOverlay"></div>
+<aside class="toc-panel" id="tocPanel">
+  <div class="toc-header">
+    <span class="toc-title">Contents</span>
+    <button class="toc-close" id="tocClose">✕</button>
+  </div>
+  <ul class="toc-list">
+    <li><a href="#about"      class="toc-link"><span class="toc-num">01</span> Hero / About</a></li>
+    <li><a href="#why"        class="toc-link"><span class="toc-num">02</span> Why Hire Me</a></li>
+    <li><a href="#skills"     class="toc-link"><span class="toc-num">03</span> Skills Dashboard</a></li>
+    <li><a href="#projects"   class="toc-link"><span class="toc-num">04</span> Projects</a></li>
+    <li><a href="#experience" class="toc-link"><span class="toc-num">05</span> Experience</a></li>
+    <li><a href="#education"  class="toc-link"><span class="toc-num">06</span> Education</a></li>
+    <li><a href="#leadership" class="toc-link"><span class="toc-num">07</span> Leadership</a></li>
+    <li><a href="#goals"      class="toc-link"><span class="toc-num">08</span> Career Goals</a></li>
+    <li><a href="#testimonials" class="toc-link"><span class="toc-num">09</span> Testimonials</a></li>
+    <li><a href="#contact"    class="toc-link"><span class="toc-num">10</span> Contact & Form</a></li>
+  </ul>
+  <hr class="toc-divider"/>
+  <div class="toc-contact-quick">
+    <p>Quick Contact</p>
+    <a href="mailto:wdigambar66@gmail.com">✉️ wdigambar66@gmail.com</a>
+    <a href="tel:+918767870372">📞 +91 8767870372</a>
+    <a href="https://wa.me/918767870372" target="_blank">💬 WhatsApp</a>
+    <a href="https://www.linkedin.com/in/digambar-waghmare-8a6b5a243/?isSelfProfile=false" target="_blank">🔗 LinkedIn</a>
+    <a href="https://github.com/mocha-DW" target="_blank">💻 GitHub</a>
+  </div>
+</aside>
+
+<!-- HERO -->
+<section class="hero" id="about">
+  <div class="hero-grid">
+    <div class="hero-left">
+      <div class="hero-eyebrow">Available for Opportunities</div>
+      <h1 class="hero-name">Digambar<br><span class="line2">Waghmare</span></h1>
+      <p class="hero-tagline"><strong>AI &amp; Full-Stack Developer</strong> building intelligent applications that bridge machine learning and seamless user experience.</p>
+      <div class="hero-badges">
+        <span class="badge badge-purple">AI / ML</span>
+        <span class="badge badge-green">Full-Stack Dev</span>
+        <span class="badge badge-red">Android</span>
+        <span class="badge badge-purple">Data Science</span>
+        <span class="badge badge-green">DSA</span>
+      </div>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="#contact">Get In Touch →</a>
+        <a class="btn btn-outline" href="#projects">View Projects</a>
+      </div>
+    </div>
+    <div class="hero-card-side">
+      <div class="profile-card">
+        <div class="profile-avatar">DW</div>
+        <div class="profile-name">Digambar Waghmare</div>
+        <div class="profile-role">// ai_developer &amp; engineer</div>
+        <div class="profile-stat-grid">
+          <div class="stat-box"><div class="num">3+</div><div class="lbl">Projects</div></div>
+          <div class="stat-box"><div class="num">2+</div><div class="lbl">Internships</div></div>
+          <div class="stat-box"><div class="num">2</div><div class="lbl">Leadership Roles</div></div>
+          <div class="stat-box"><div class="num">6+</div><div class="lbl">Tech Stacks</div></div>
+        </div>
+        <div class="contact-links">
+          <a class="contact-link" href="mailto:wdigambar66@gmail.com"><span class="icon">✉️</span> wdigambar66@gmail.com</a>
+          <a class="contact-link" href="tel:+918767870372"><span class="icon">📞</span> +91 8767870372</a>
+          <a class="contact-link" href="https://wa.me/918767870372" target="_blank"><span class="icon">💬</span> WhatsApp Me</a>
+          <a class="contact-link" href="https://www.linkedin.com/in/digambar-waghmare-8a6b5a243/" target="_blank"><span class="icon">🔗</span> LinkedIn Profile</a>
+          <a class="contact-link" href="https://github.com/mocha-DW" target="_blank"><span class="icon">💻</span> GitHub Portfolio</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<hr class="divider"/>
+
+<!-- WHY HIRE ME -->
+<section id="why">
+  <div class="section-inner">
+    <div class="section-label">Why Digambar</div>
+    <h2 class="section-heading">Why Hire Me?</h2>
+    <p class="section-sub">A unique combination of AI knowledge, full-stack execution, and leadership — built across real-world startups, internships, and community roles.</p>
+    <div class="why-grid">
+      <div class="why-card"><div class="why-icon">🤖</div><div class="why-title">AI-First Thinking</div><div class="why-desc">I don't just use frameworks — I understand ML pipelines, LLMs, and how to integrate intelligence into real products users actually love.</div></div>
+      <div class="why-card"><div class="why-icon">⚡</div><div class="why-title">Rapid Execution</div><div class="why-desc">From idea to deployed app: I've shipped 3 production projects with 1-year maintenance commitments, working under startup deadlines.</div></div>
+      <div class="why-card"><div class="why-icon">🌐</div><div class="why-title">Full-Stack Range</div><div class="why-desc">Web (React + Django), mobile (Flutter), cloud (AWS S3, Firebase) — I can own the full product layer without hand-holding.</div></div>
+      <div class="why-card"><div class="why-icon">📊</div><div class="why-title">Data-Driven Mindset</div><div class="why-desc">Led the MLSC Data Analytics domain, with hands-on experience in Scikit-learn, TensorFlow, and translating raw data into insights.</div></div>
+      <div class="why-card"><div class="why-icon">🚀</div><div class="why-title">Proven Leadership</div><div class="why-desc">Simultaneously led GDSC (Android) and MLSC (Data Analytics) — coordinating teams, running workshops, and driving technical culture.</div></div>
+      <div class="why-card"><div class="why-icon">🔄</div><div class="why-title">Learner's Velocity</div><div class="why-desc">Went from Diploma to BE while leading two clubs, shipping commercial projects, and completing two internships. I compound fast.</div></div>
+    </div>
+  </div>
+</section>
+<hr class="divider"/>
+
+<!-- SKILLS DASHBOARD -->
+<section class="skills-section" id="skills">
+  <div class="section-inner">
+    <div class="section-label">Capabilities</div>
+    <h2 class="section-heading">Skills Dashboard</h2>
+    <p class="section-sub">Proficiency across languages, frameworks, and tools built through real projects.</p>
+    <div class="skills-grid">
+      <div>
+        <div class="skill-category">
+          <h3>Programming Languages</h3>
+          <div class="skill-bar"><div class="skill-bar-top"><span>Python</span><span>90%</span></div><div class="skill-bar-track"><div class="skill-bar-fill" style="width:90%"></div></div></div>
+          <div class="skill-bar"><div class="skill-bar-top"><span>JavaScript</span><span>80%</span></div><div class="skill-bar-track"><div class="skill-bar-fill" style="width:80%"></div></div></div>
+          <div class="skill-bar"><div class="skill-bar-top"><span>Java</span><span>75%</span></div><div class="skill-bar-track"><div class="skill-bar-fill" style="width:75%"></div></div></div>
+          <div class="skill-bar"><div class="skill-bar-top"><span>SQL</span><span>78%</span></div><div class="skill-bar-track"><div class="skill-bar-fill" style="width:78%"></div></div></div>
+          <div class="skill-bar"><div class="skill-bar-top"><span>DSA</span><span>72%</span></div><div class="skill-bar-track"><div class="skill-bar-fill" style="width:72%"></div></div></div>
+        </div>
+        <div class="skill-category" style="margin-top:2rem;">
+          <h3>AI / ML Stack</h3>
+          <div class="tech-tags">
+            <span class="tech-tag">Scikit-learn</span><span class="tech-tag">TensorFlow</span><span class="tech-tag">GPT APIs</span><span class="tech-tag">BERT</span><span class="tech-tag">LangChain</span><span class="tech-tag">Streamlit</span>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="skill-category">
+          <h3>Frameworks & Tools</h3>
+          <div class="skill-bar"><div class="skill-bar-top"><span>React</span><span>80%</span></div><div class="skill-bar-track"><div class="skill-bar-fill" style="width:80%"></div></div></div>
+          <div class="skill-bar"><div class="skill-bar-top"><span>Flutter</span><span>82%</span></div><div class="skill-bar-track"><div class="skill-bar-fill" style="width:82%"></div></div></div>
+          <div class="skill-bar"><div class="skill-bar-top"><span>Django</span><span>75%</span></div><div class="skill-bar-track"><div class="skill-bar-fill" style="width:75%"></div></div></div>
+          <div class="skill-bar"><div class="skill-bar-top"><span>Firebase</span><span>85%</span></div><div class="skill-bar-track"><div class="skill-bar-fill" style="width:85%"></div></div></div>
+        </div>
+        <div class="skill-category" style="margin-top:2rem;">
+          <h3>Cloud & DevOps</h3>
+          <div class="tech-tags">
+            <span class="tech-tag">AWS S3</span><span class="tech-tag">Docker</span><span class="tech-tag">Git</span><span class="tech-tag">MongoDB</span><span class="tech-tag">Flask</span><span class="tech-tag">Angular</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<hr class="divider"/>
+
+<!-- PROJECTS -->
+<section id="projects">
+  <div class="section-inner">
+    <div class="section-label">Work Showcase</div>
+    <h2 class="section-heading">Projects & Achievements</h2>
+    <p class="section-sub">Real applications shipped to real users — not just coursework.</p>
+    <div class="projects-grid">
+      <div class="project-card">
+        <div class="project-num">PROJECT 01</div>
+        <div class="project-title">🔧 Ganga — Repair Booking Platform</div>
+        <div class="project-desc">Responsive full-stack web app where users upload photos of defective electronics. Admins approve repair appointments and manage workflows for a real Electrical & Electronics client.</div>
+        <div class="project-stack"><span class="stack-chip">React</span><span class="stack-chip">Django</span><span class="stack-chip">REST API</span></div>
+      </div>
+      <div class="project-card">
+        <div class="project-num">PROJECT 02</div>
+        <div class="project-title">🤖 AI Chatbot for Job Recommendations</div>
+        <div class="project-desc">Personalized AI career assistant that analyzes user skills and preferences to recommend relevant jobs. Integrated GPT-style reasoning with a clean Streamlit interface for rapid deployment.</div>
+        <div class="project-stack"><span class="stack-chip">Python</span><span class="stack-chip">Streamlit</span><span class="stack-chip">LLM</span><span class="stack-chip">NLP</span></div>
+      </div>
+      <div class="project-card">
+        <div class="project-num">PROJECT 03</div>
+        <div class="project-title">💼 EasyLancing — Freelancer App</div>
+        <div class="project-desc">Cross-platform mobile app connecting freelancers with clients. Built with FlutterFlow for rapid UI development and Firebase for real-time data sync and authentication.</div>
+        <div class="project-stack"><span class="stack-chip">Flutter</span><span class="stack-chip">FlutterFlow</span><span class="stack-chip">Firebase</span></div>
+      </div>
+      <div class="project-card">
+        <div class="project-num">PROJECT 04</div>
+        <div class="project-title">🌾 Farmers Market Price App</div>
+        <div class="project-desc">Web application enabling farmers to check real-time crop market prices, reducing information asymmetry and improving income decisions. Built during internship at Sun Info-Tech.</div>
+        <div class="project-stack"><span class="stack-chip">Web Dev</span><span class="stack-chip">JavaScript</span><span class="stack-chip">API</span></div>
+      </div>
+      <div class="project-card">
+        <div class="project-num">PROJECT 05</div>
+        <div class="project-title">📱 Android Feature Development</div>
+        <div class="project-desc">Developed multiple Android application features during AICTE EduSkills internship, including custom UIs and client-specific functionality with attention to performance and UX standards.</div>
+        <div class="project-stack"><span class="stack-chip">Android</span><span class="stack-chip">Java</span><span class="stack-chip">UI/UX</span></div>
+      </div>
+      <div class="project-card">
+        <div class="project-num">PROJECT 06</div>
+        <div class="project-title">🏢 Diploma Projects Suite</div>
+        <div class="project-desc">Suite of management apps: VMS (Vehicle Management), Body Mass Index App, Medical Management System, and Billing App — all completed during diploma studies.</div>
+        <div class="project-stack"><span class="stack-chip">Java</span><span class="stack-chip">SQL</span><span class="stack-chip">App Dev</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+<hr class="divider"/>
+
+<!-- EXPERIENCE -->
+<section id="experience" style="background:var(--surface);transition:background 0.3s;">
+  <div class="section-inner">
+    <div class="section-label">Professional Journey</div>
+    <h2 class="section-heading">Experience</h2>
+    <p class="section-sub">Hands-on exposure across a startup, internships, and community leadership.</p>
+    <div class="timeline">
+      <div class="timeline-item">
+        <div class="tl-date">Jan 2024<br>— Present</div>
+        <div class="tl-line-wrap"><div class="tl-dot"></div><div class="tl-line"></div></div>
+        <div class="tl-content">
+          <div class="tl-company">enfraTech (Start-up)</div>
+          <div class="tl-role">// AI, App & Web Developer</div>
+          <div class="tl-desc">Working at an early-stage startup building AI-powered applications and web services. Delivered 3 full projects with 1-year post-launch maintenance — taking complete ownership of design, development, and support.</div>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="tl-date">Apr 2024<br>— Jun 2024</div>
+        <div class="tl-line-wrap"><div class="tl-dot"></div><div class="tl-line"></div></div>
+        <div class="tl-content">
+          <div class="tl-company">AICTE EduSkills</div>
+          <div class="tl-role">// Android Development Intern</div>
+          <div class="tl-desc">Developed Android application features including custom user interfaces and client-tailored functionality. Gained industry exposure under the AICTE-backed internship program.</div>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="tl-date">Jun 2023</div>
+        <div class="tl-line-wrap"><div class="tl-dot"></div><div class="tl-line"></div></div>
+        <div class="tl-content">
+          <div class="tl-company">Sun Info-Tech</div>
+          <div class="tl-role">// Web Development Intern</div>
+          <div class="tl-desc">Built a market price tracking web app for farmers — enabling real-time visibility of crop values. Sole developer on the feature during the internship period.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<hr class="divider"/>
+
+<!-- EDUCATION -->
+<section id="education">
+  <div class="section-inner">
+    <div class="section-label">Academic Background</div>
+    <h2 class="section-heading">Education</h2>
+    <p class="section-sub">Consistent academic progress alongside real-world project delivery.</p>
+    <div class="edu-grid">
+      <div class="edu-card">
+        <div class="edu-icon">🎓</div>
+        <div class="edu-degree">B.E. in AI & Data Science</div>
+        <div class="edu-inst">Pr. Pote Patil College of Engg & Mgmt, Amravati</div>
+        <div class="edu-meta"><span class="edu-year">2023 – 2026</span><span class="edu-gpa">CGPA 6.88 (5th Sem)</span></div>
+      </div>
+      <div class="edu-card">
+        <div class="edu-icon">📐</div>
+        <div class="edu-degree">Diploma in Computer Engineering</div>
+        <div class="edu-inst">Dr. Panjabrao Deshmukh Polytechnic, Amravati</div>
+        <div class="edu-meta"><span class="edu-year">2020 – 2023</span><span class="edu-gpa">GPA 7.5</span></div>
+      </div>
+      <div class="edu-card">
+        <div class="edu-icon">📚</div>
+        <div class="edu-degree">SSC (10th Grade)</div>
+        <div class="edu-inst">Shri Ganeshdas Rathi Vidyalaya, Amravati</div>
+        <div class="edu-meta"><span class="edu-year">2019 – 2020</span><span class="edu-gpa">77.46%</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+<hr class="divider"/>
+
+<!-- LEADERSHIP -->
+<section id="leadership" style="background:var(--surface);transition:background 0.3s;">
+  <div class="section-inner">
+    <div class="section-label">Community Impact</div>
+    <h2 class="section-heading">Leadership</h2>
+    <p class="section-sub">Leading technical communities and shaping the next generation of developers.</p>
+    <div class="lead-grid">
+      <div class="lead-card">
+        <div class="lead-icon">🤖</div>
+        <div>
+          <div class="lead-title">GDSC — Android Development Lead</div>
+          <div class="lead-sub">Google Developer Student Club · Leading the Android domain, organizing workshops, mentoring peers, and building a developer community around Android engineering.</div>
+        </div>
+      </div>
+      <div class="lead-card">
+        <div class="lead-icon">📊</div>
+        <div>
+          <div class="lead-title">MLSC — Data Analytics Lead</div>
+          <div class="lead-sub">Microsoft Learn Student Club · Heading the Data Analytics domain, running sessions on Python, ML, and data pipelines for students across the college.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<hr class="divider"/>
+
+<!-- CAREER GOALS -->
+<section class="goals-section" id="goals">
+  <div class="section-inner">
+    <div class="section-label">Vision</div>
+    <h2 class="section-heading">Career Goals</h2>
+    <div class="goals-card">
+      <p style="font-size:1rem;color:var(--muted);line-height:1.8;">I'm seeking a <strong style="color:var(--text)">Software Engineering role or internship</strong> where I can apply my cross-domain skills — from AI and ML to full-stack and mobile — to solve real business problems at scale. My long-term goal is to build AI-native products that create measurable positive impact.</p>
+      <div class="goals-grid">
+        <div class="goal-item"><div class="goal-bullet"></div><div class="goal-text"><strong>Short-term:</strong> Land a high-impact SDE/MLE role or internship at a product company or startup with an AI-first engineering culture.</div></div>
+        <div class="goal-item"><div class="goal-bullet"></div><div class="goal-text"><strong>Medium-term:</strong> Contribute to ML systems at scale, deepen expertise in LLM fine-tuning and MLOps, and lead engineering teams.</div></div>
+        <div class="goal-item"><div class="goal-bullet"></div><div class="goal-text"><strong>Long-term:</strong> Co-found an AI venture addressing challenges in AgriTech, HealthTech, or EdTech for Bharat-scale problems.</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+<hr class="divider"/>
+
+<!-- TESTIMONIALS -->
+<section id="testimonials">
+  <div class="section-inner">
+    <div class="section-label">Social Proof</div>
+    <h2 class="section-heading">What People Say</h2>
+    <p class="section-sub">Feedback from mentors and collaborators who've worked with Digambar directly.</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;">
+      <div class="testimonial-card">
+        <div class="testimonial-text">Digambar stands out because he doesn't just learn tools — he figures out how to apply them to real user problems. His work on the AI chatbot project showed both technical depth and product instinct that is rare in students at his stage.</div>
+        <div class="testimonial-author">College Mentor</div>
+        <div class="testimonial-role">// AI & Data Science Department</div>
+      </div>
+      <div class="testimonial-card">
+        <div class="testimonial-text">As the Android lead in GDSC, Digambar showed initiative in organizing workshops and helping other members get unstuck. He's someone who takes ownership and follows through — exactly what any team needs.</div>
+        <div class="testimonial-author">GDSC Chapter Lead</div>
+        <div class="testimonial-role">// Google Developer Student Clubs</div>
+      </div>
+    </div>
+  </div>
+</section>
+<hr class="divider"/>
+
+<!-- CONTACT + GMAIL FORM -->
+<section class="contact-section" id="contact">
+  <div class="section-inner">
+    <div class="contact-grid">
+      <!-- Left: info + quick links -->
+      <div>
+        <div class="section-label">Let's Connect</div>
+        <div class="contact-big">Ready to<br>build something<br><span>great together?</span></div>
+        <div class="contact-sub">Open to SDE internships, full-time roles, freelance projects, and AI/ML collaboration. Response within 24 hours.</div>
+        <div class="contact-methods">
+          <a class="contact-method" href="mailto:wdigambar66@gmail.com">
+            <div class="cm-icon">✉️</div><div><div class="cm-label">Email</div><div class="cm-value">wdigambar66@gmail.com</div></div>
+          </a>
+          <a class="contact-method" href="tel:+918767870372">
+            <div class="cm-icon">📞</div><div><div class="cm-label">Phone</div><div class="cm-value">+91 8767870372</div></div>
+          </a>
+          <a class="contact-method" href="https://wa.me/918767870372" target="_blank">
+            <div class="cm-icon">💬</div><div><div class="cm-label">WhatsApp</div><div class="cm-value">Message on WhatsApp</div></div>
+          </a>
+          <a class="contact-method" href="https://www.linkedin.com/in/digambar-waghmare-8a6b5a243/" target="_blank">
+            <div class="cm-icon">🔗</div><div><div class="cm-label">LinkedIn</div><div class="cm-value">https://www.linkedin.com/in/digambar-waghmare-8a6b5a243/</div></div>
+          </a>
+          <a class="contact-method" href="https://github.com/mocha-DW" target="_blank">
+            <div class="cm-icon">💻</div><div><div class="cm-label">GitHub</div><div class="cm-value">https://github.com/mocha-DW</div></div>
+          </a>
+        </div>
+      </div>
+
+      <!-- Right: Gmail Form -->
+<div class="gmail-form-card">
+  <h3>Send Me a Message</h3>
+  <p>Fill in the form — we connect soon.</p>
+
+  <form id="contactForm" action="https://formspree.io/f/mgvzykwj" method="POST">
+    <div class="form-row">
+      <div class="form-group">
+        <label for="f-name">Your Name</label>
+        <input type="text" id="f-name" name="name" placeholder="Full Name" required/>
+      </div>
+      <div class="form-group">
+        <label for="f-email">Your Email</label>
+        <input type="email" id="f-email" name="email" placeholder="xyz@company.com" required/>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="f-purpose">Purpose</label>
+      <select id="f-purpose" name="purpose">
+        <option value="Job Opportunity">💼 Job Opportunity</option>
+        <option value="Internship Offer">🎓 Internship Offer</option>
+        <option value="Freelance Project">🔧 Freelance Project</option>
+        <option value="Collaboration">🤝 Collaboration / Collab</option>
+        <option value="General Inquiry">💬 General Inquiry</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="f-subject">Subject</label>
+      <input type="text" id="f-subject" name="subject" placeholder="Internship at XYZ Corp — Summer 2026" required/>
+    </div>
+
+    <div class="form-group">
+      <label for="f-msg">Message</label>
+      <textarea id="f-msg" name="message" placeholder="Hi Digambar, I came across your portfolio and would love to discuss..." required></textarea>
+    </div>
+
+    <!-- Honeypot field to reduce spam (Formspree convention) -->
+    <input type="text" name="_gotcha" style="display:none" tabindex="-1" autocomplete="off"/>
+
+    <button class="form-send-btn" id="formSendBtn" type="submit">
+      <span id="btnIcon">✉️</span> <span id="btnText">Send Message</span>
+    </button>
+  </form>
+</div>
+    </section>
+<footer>
+  <div class="footer-text">Designed &amp; built by Digambar Waghmare · AI &amp; Software Developer · Amravati, Maharashtra · 2026</div>
+</footer>
+<script>
+// ── THEME TOGGLE ──────────────────────────────────────────
+const html = document.documentElement;
+const themeBtn = document.getElementById('themeToggle');
+const saved = localStorage.getItem('dw-theme') || 'dark';
+html.setAttribute('data-theme', saved);
+themeBtn.addEventListener('click', () => {
+  const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  html.setAttribute('data-theme', next);
+  localStorage.setItem('dw-theme', next);
+});
+
+// ── TOC PANEL ─────────────────────────────────────────────
+const tocBtn     = document.getElementById('tocBtn');
+const tocPanel   = document.getElementById('tocPanel');
+const tocOverlay = document.getElementById('tocOverlay');
+const tocClose   = document.getElementById('tocClose');
+
+function openToc()  { tocPanel.classList.add('open'); tocOverlay.classList.add('open'); document.body.style.overflow='hidden'; }
+function closeToc() { tocPanel.classList.remove('open'); tocOverlay.classList.remove('open'); document.body.style.overflow=''; }
+
+tocBtn.addEventListener('click', openToc);
+tocClose.addEventListener('click', closeToc);
+tocOverlay.addEventListener('click', closeToc);
+
+// Close TOC when a link inside is clicked
+document.querySelectorAll('.toc-link').forEach(a => {
+  a.addEventListener('click', closeToc);
+});
+
+// Active link highlighting on scroll
+const sectionIds = ['about','why','skills','projects','experience','education','leadership','goals','testimonials','contact'];
+const tocLinks = document.querySelectorAll('.toc-link');
+
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      tocLinks.forEach(l => l.classList.remove('active'));
+      const match = document.querySelector(`.toc-link[href="#${entry.target.id}"]`);
+      if (match) match.classList.add('active');
+    }
+  });
+}, { rootMargin: '-40% 0px -55% 0px' });
+
+sectionIds.forEach(id => {
+  const el = document.getElementById(id);
+  if (el) observer.observe(el);
+});
+
+// ── GMAIL FORM ────────────────────────────────────────────
+document.getElementById('gmailSendBtn').addEventListener('click', () => {
+  const name    = document.getElementById('f-name').value.trim();
+  const email   = document.getElementById('f-email').value.trim();
+  const purpose = document.getElementById('f-purpose').value;
+  const subject = document.getElementById('f-subject').value.trim() || purpose;
+  const msg     = document.getElementById('f-msg').value.trim();
+
+  if (!name || !email || !msg) {
+    alert('Please fill in your name, email, and message before sending.');
+    return;
+  }
+
+  const body = `Hi Digambar,\n\nFrom: ${name} (${email})\nPurpose: ${purpose}\n\n${msg}\n\n---\nSent via digambar.dev portfolio`;
+  const gmailUrl = `https://mail.google.com/mail/?view=cm&to=wdigambar66@gmail.com&su=${encodeURIComponent(`[Portfolio] ${subject}`)}&body=${encodeURIComponent(body)}`;
+  window.open(gmailUrl, '_blank');
+});
+</script>
+</body>
+</html>
